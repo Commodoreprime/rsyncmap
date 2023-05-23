@@ -8,19 +8,9 @@ from verbose_printer import veprint
 class Argumenter:
     def __init__(self, premature_stop=False) -> None:
         self.parser = argparse.ArgumentParser(
-            prog="dmapsync",
+            prog="rsyncmap",
             description="""
-            Utilize the syncronizability of Rsync with
-            the power of per directory redirection
-            via a .syncmap file. Two operations are recognized:
-            mapping) "FROM => TO"
-            and
-            addional arguments) ": NARGS ...".
-            """,
-            epilog="""
-            As previously stated, a .syncmap file can contain two operations.
-            To go into further detail:
-                mapping only accepts '=>' as the keyword, it is not a bi-directional keyword.
+            Rsync wrapper that allows controlling where files and directories should be copied to on a per directory basis
             """)
         
         # Defines arguments

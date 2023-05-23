@@ -30,6 +30,8 @@ It is recommended to quote the entire path when specifying a path with spaces.
 
 Example: ` 'foo/biz/foo and biz go up the hill.txt' => 'story 1.txt' `
 
+The => symbol is not bi-directional.
+
 ### The `ARGS` operator
 
 Syntax: `: ARGS`.
