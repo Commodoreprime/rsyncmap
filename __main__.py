@@ -1,4 +1,4 @@
-from pathlib import PurePath as PuPath
+from pathlib import Path
 
 from argumenter import Argumenter
 from verbose_printer import veprint
@@ -14,8 +14,7 @@ for syncmap in mapping_files:
     with syncmap.open('r') as f:
         opt_arguments = []
         for line in f.readlines():
-            map_pair = line.split("=>")
-            if len(map_pair) < 2 and line[0] == ':':
+            if line[0] == ':':
                 buffer = ''
                 quote_level = 0
                 for c in line[1:].strip() + ' ':
@@ -28,16 +27,15 @@ for syncmap in mapping_files:
                         quote_level += 1
                         if quote_level >= 1:
                             quote_level -= 2
-                continue
-            
-            map_from = map_pair[0].strip()
-            map_to   = map_pair[1].strip()
-        
-            mappings_list.append({
-                "from": PuPath(syncmap.parent, map_from),
-                "to": PuPath(args.destination_directory, map_to),
-                "opt_args": opt_arguments
-            })
+            else:
+                map_pair = line.split("=>")
+                map_from = Path(syncmap.parent, map_pair[0].strip())
+                map_to   = Path(args.destination_directory, map_pair[1].strip())
+                mappings_list.append({
+                    "from": map_from,
+                    "to": map_to,
+                    "opt_args": opt_arguments.copy()
+                })
 
 veprint(mappings_list)
 # TODO: Delete: Probably don't need this?
@@ -48,9 +46,5 @@ veprint(mappings_list)
 # veprint("rsync is",rsync_bin)
 
 for mapping in mappings_list:
-    rsync_args = args.default_flags
-    for ca in mapping["opt_args"]:
-        if len(ca) > 0:
-            rsync_args.append(ca)
-    veprint(' '.join(rsync(str(mapping["from"]), str(mapping["to"]),
-        rsync_args)))
+    rsync_args = args.default_flags + mapping["opt_args"]
+    veprint(rsync(str(mapping["from"]), str(mapping["to"]), rsync_args))
