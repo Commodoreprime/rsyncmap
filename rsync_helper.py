@@ -8,14 +8,15 @@ def rsync_executable_path():
         return which_proc.stdout.decode().strip()
     return None
 
-def rsync(source_directory:str, target_directory:str, arguments:list):
+def rsync(source_directory:Path, target_directory:Path, arguments:list):
     arg_list = ["rsync"]
     for arg in arguments:
         arg_list.append(arg)
-    arg_list.append("--dry-run")
+    arg_list.append("--exclude=.syncmap")
     arg_list.append("--info=progress2")
-    arg_list.append(source_directory)
-    arg_list.append(target_directory)
-    return arg_list
-    rsync_process = subprocess.run(arg_list, stdout=subprocess.STDOUT)
+    arg_list.append("--recursive")
+    arg_list.append(str(source_directory))
+    arg_list.append(str(target_directory))
+    target_directory.mkdir(parents=True, exist_ok=True)
+    rsync_process = subprocess.run(arg_list)
     return rsync_process

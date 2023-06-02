@@ -41,4 +41,4 @@ veprint(mappings_list)
 
 for mapping in mappings_list:
     rsync_args = args.default_flags + mapping["opt_args"]
-    veprint(rsync(str(mapping["from"]), str(mapping["to"]), rsync_args))
+    rsync(mapping["from"], mapping["to"], rsync_args)
