@@ -15,7 +15,7 @@ class Argumenter:
         
         # Defines arguments
         self.parser.add_argument('-v', '--verbose',
-            help="whether to be verbose",
+            help="toggle output of more information",
             required=False,
                                 default=False,
                                 action="store_true",
@@ -37,7 +37,7 @@ class Argumenter:
                                 metavar="ORIGIN_DIRECTORY",
                                 dest="_origin_path")
         self.parser.add_argument('-d', '--dry-run',
-            help="performs a dry run where nothing is changed, only simulated",
+            help="executes where nothing is changed, only simulated",
                                 default=False,
                                 action="store_true",
                                 dest="_dry_run")
@@ -58,7 +58,7 @@ class Argumenter:
         
         if self.verbose == True:
             self.default_flags.append("--verbose")
-            print("Default flags += {}".format(self.default_flags))
+            print("Default flags = {}".format(self.default_flags))
         
         # If origin_path is None, set to current directory.
         #   Otherwise, set to variable

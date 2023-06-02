@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 
 def rsync_executable_path():
-    # TODO: Make universal? Does python have a module for this?
+    # TODO: Make universal? Does python have a multi-os module for this?
     which_proc = subprocess.run(["which", "rsync"], stdout=subprocess.PIPE)
     if which_proc.returncode == 0:
         return which_proc.stdout.decode().strip()

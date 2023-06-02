@@ -38,12 +38,6 @@ for syncmap in mapping_files:
                 })
 
 veprint(mappings_list)
-# TODO: Delete: Probably don't need this?
-# rsync_bin = rsync_executable_path()
-# if rsync_bin == None:
-#     print("Error! rsync not found!")
-#     exit(1)
-# veprint("rsync is",rsync_bin)
 
 for mapping in mappings_list:
     rsync_args = args.default_flags + mapping["opt_args"]
