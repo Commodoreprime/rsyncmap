@@ -1,11 +1,9 @@
 from pathlib import Path
 
-from argumenter import Argumenter
+import argumenter as args
 from verbose_printer import veprint
 from rsync_helper import *
 
-
-args = Argumenter()
 
 mapping_files = args.initial_directory.glob("**/.syncmap")
 mappings_list = []
