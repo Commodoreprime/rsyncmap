@@ -2,6 +2,21 @@ from pathlib import Path
 
 import argumenter as args
 
+class DirectionOperator:
+    def __init__(self, _from:Path|str, _to:Path|str):
+        self.from_path:Path = Path(_from)
+        self.to_path:Path = Path(_to)
+
+    def __str__(self) -> str:
+        return f"{self.from_path} -> {self.to_path}"
+
+class NegationOperator:
+    def __init__(self, _negator_path:Path|str):
+        self.negator:Path = Path(_negator_path)
+    
+    def __str__(self) -> str:
+        return f"! {self.negator}"
+
 def extract_arguments(input_line:str) -> list:
     """Given an line str. extract a list of arguments while accounting for quotes"""
     arg_list = []
@@ -21,22 +36,28 @@ def extract_arguments(input_line:str) -> list:
 
 def parse_file(file_path:Path) -> list:
     transform_list = []
+    def add_entry(map:DirectionOperator|NegationOperator, args:list|None):
+        if type(args) == list:
+            args = args.copy()
+        transform_list.append({
+            "operation": map,
+            "opt_args": args
+        })
+    arguments_buffer = []
     with file_path.open('r') as f:
-        additional_arguments = []
         for line in f.readlines():
             if line.startswith(':'):
-                additional_arguments += extract_arguments(line[1:].strip()+' ')
+                arguments_buffer.append(*extract_arguments(line[1:].strip()+' '))
             elif line.startswith('!'):
-                transform_list.append({
-                    "negate": Path(file_path.parent, line[1:].strip())
-                })
+                add_entry(NegationOperator(Path(file_path.parent, line[1:].strip())),
+                          None)
             else:
                 pair = line.split("=>")
-                from_path = Path(file_path.parent, pair[0].strip())
+                from_entry = pair[0].strip()
+                if from_entry == '':
+                    from_entry = '*'
                 to_path = Path(args.destination_directory, pair[1].strip())
-                transform_list.append({
-                    "opt_args": additional_arguments.copy(),
-                    "from": from_path,
-                    "to": to_path
-                })
+                for deglobbed_path in file_path.parent.glob(from_entry):
+                    add_entry(DirectionOperator(deglobbed_path, to_path),
+                              arguments_buffer)
     return transform_list

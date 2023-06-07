@@ -10,11 +10,8 @@ def rsync_executable_path():
 
 def rsync(source_directory:Path, target_directory:Path, arguments:list):
     arg_list = ["rsync"]
-    for arg in arguments:
-        arg_list.append(arg)
     arg_list.append("--exclude=.syncmap")
-    arg_list.append("--info=progress2")
-    arg_list.append("--recursive")
+    arg_list += arguments
     arg_list.append(str(source_directory))
     arg_list.append(str(target_directory))
     target_directory.mkdir(parents=True, exist_ok=True)
