@@ -34,11 +34,13 @@ The => symbol is not bi-directional.
 
 ### The `ARGS` operator
 
-Syntax: `: ARGS`.
+Syntax: `:[-] ARGS`.
 
 If a line starts with a colon (:), anything after will be considered additional arguments passed to rsync and passed as-is.
 
-If and when declared at some point in the syncmap file it will be added to future mappings for the duration of the file. Additionally, any additional `ARGS` operation will be appended.
+If and when declared at some point in the syncmap file it will be added to future mappings for the duration of the file. Additionally, any additional `ARGS` operation will be added ontop.
+
+An optional minus (-) can be specified directly after the colon to remove any arguments specified. There **must** be a space between the minus and following arguments. If an argument cannot be found it will fail silently and continue.
 
 ---
 ## Examples

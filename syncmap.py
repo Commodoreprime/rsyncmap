@@ -47,7 +47,18 @@ def parse_file(file_path:Path) -> list:
     with file_path.open('r') as f:
         for line in f.readlines():
             if line.startswith(':'):
-                arguments_buffer.append(*extract_arguments(line[1:].strip()+' '))
+                remove_args = False
+                argument_str = line[1:].strip()
+                if argument_str.startswith('- '):
+                    argument_str = line[2:]
+                    remove_args = True
+                for arg in extract_arguments(argument_str+' '):
+                    if remove_args == False:
+                        arguments_buffer.append(arg)
+                    elif remove_args == True:
+                        try:
+                            arguments_buffer.remove(arg)
+                        except ValueError: pass
             elif line.startswith('!'):
                 add_entry(NegationOperator(Path(file_path.parent, line[1:].strip())),
                           None)
