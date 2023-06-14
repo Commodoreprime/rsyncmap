@@ -59,7 +59,7 @@ def parse_file(file_path:str) -> list:
                 remove_args = False
                 argument_str = line[1:].strip()
                 if argument_str.startswith('- '):
-                    argument_str = line[2:]
+                    argument_str = line[1:].strip()
                     remove_args = True
                 for arg in extract_arguments(argument_str+' '):
                     if remove_args == False:
