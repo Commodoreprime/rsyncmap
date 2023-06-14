@@ -1,21 +1,29 @@
-from pathlib import Path
+import glob
+import os
 
 import argumenter as args
 
 class DirectionOperator:
-    def __init__(self, _from:Path|str, _to:Path|str):
-        self.from_path:Path = Path(_from)
-        self.to_path:Path = Path(_to)
+    def __init__(self, _from:str, _to:str):
+        self.from_path:str = _from
+        self.to_path:str = _to
 
     def __str__(self) -> str:
         return f"{self.from_path} -> {self.to_path}"
 
 class NegationOperator:
-    def __init__(self, _negator_path:Path|str):
-        self.negator:Path = Path(_negator_path)
+    def __init__(self, _negator_path:str):
+        self.negator:str = _negator_path
     
     def __str__(self) -> str:
         return f"! {self.negator}"
+
+def get_file_list(start_directory:str) -> list:
+    glob_list = glob.glob("**/.syncmap", root_dir=start_directory, recursive=True)
+    return_list = []
+    for glob_file in glob_list:
+        return_list.append(os.path.join(start_directory, glob_file))
+    return return_list
 
 def extract_arguments(input_line:str) -> list:
     """Given an line str. extract a list of arguments while accounting for quotes"""
@@ -34,7 +42,7 @@ def extract_arguments(input_line:str) -> list:
                 quote_level -= 2
     return arg_list
 
-def parse_file(file_path:Path) -> list:
+def parse_file(file_path:str) -> list:
     transform_list = []
     def add_entry(map:DirectionOperator|NegationOperator, args:list|None):
         if type(args) == list:
@@ -44,7 +52,8 @@ def parse_file(file_path:Path) -> list:
             "opt_args": args
         })
     arguments_buffer = []
-    with file_path.open('r') as f:
+    with open(file_path, 'r') as f:
+        parent_directory = os.path.dirname(file_path)
         for line in f.readlines():
             if line.startswith(':'):
                 remove_args = False
@@ -60,15 +69,16 @@ def parse_file(file_path:Path) -> list:
                             arguments_buffer.remove(arg)
                         except ValueError: pass
             elif line.startswith('!'):
-                add_entry(NegationOperator(Path(file_path.parent, line[1:].strip())),
+                add_entry(NegationOperator(os.path.join(parent_directory,
+                                                        line[1:].strip())),
                           None)
             else:
                 pair = line.split("=>")
                 from_entry = pair[0].strip()
-                if from_entry == '':
+                if from_entry == ('' or '.'):
                     from_entry = '*'
-                to_path = Path(args.destination_directory, pair[1].strip())
-                for deglobbed_path in file_path.parent.glob(from_entry):
-                    add_entry(DirectionOperator(deglobbed_path, to_path),
+                to_path = os.path.join(args.destination_directory, pair[1].strip())
+                for deg_file in glob.glob(from_entry, root_dir=parent_directory):
+                    add_entry(DirectionOperator(os.path.join(parent_directory, deg_file), to_path),
                               arguments_buffer)
     return transform_list

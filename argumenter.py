@@ -1,4 +1,3 @@
-from pathlib import Path
 import argparse
 import os
 
@@ -32,7 +31,7 @@ __parser.add_argument('-D', '--origin-directory',
             required=False,
             default=None,
             action="store",
-            type=Path,
+            type=str,
             metavar="ORIGIN_DIRECTORY",
             dest="origin_path")
 
@@ -44,7 +43,7 @@ __parser.add_argument('-d', '--dry-run',
 
 __parser.add_argument("destination_dir",
             help="directory where to sync to",
-            type=Path)
+            type=str)
 
 __args = __parser.parse_args()
 
@@ -62,12 +61,12 @@ if verbose == True:
 
 # If origin_path is None, set to current directory.
 #   Otherwise, set to variable
-initial_directory:Path = Path()
+initial_directory:str = None
 if __args.origin_path == None:
-    initial_directory = Path(os.curdir)
-elif __args.origin_path is Path:
+    initial_directory = os.curdir
+elif type(__args.origin_path) == str:
     initial_directory = __args.origin_path
 veprint("initial directory = {}".format(initial_directory))
 
-destination_directory:Path = __args.destination_dir
+destination_directory:str = __args.destination_dir
 veprint("destination directory = {}".format(destination_directory))
