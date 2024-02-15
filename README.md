@@ -2,6 +2,12 @@
 Python based rsync wrapper that allows controlling where files and directories should be copied to on a per directory basis
 
 ---
+# This branch
+the `rewrite` branch is for revamping the codebase to be more "streamlined". Whether this will work or not, who knows!
+
+See [TODO](TODO.md) for more information.
+
+---
 ## Syntax
 
 The majority of time spent when using this wrapper will be in `.syncmap` files.
