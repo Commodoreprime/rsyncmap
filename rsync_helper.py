@@ -8,16 +8,22 @@ def rsync_executable_path():
         return which_proc.stdout.decode().strip()
     return None
 
-def rsync(source_directory:str, target_directory:str, arguments:list,
+#TODO: Add option that allows user to block adding internal args
+def rsync(source_directory:str, target_directory:str, arguments:[list],
           fake:bool=False) -> subprocess.CompletedProcess[bytes]|None:
     arg_list = ["rsync"]
+    arg_list.append("--mkpath")
+    #TODO: Be able to specify custom map file name and disable excluding it
     arg_list.append("--exclude=.syncmap")
-    arg_list += arguments
+    for a_list in arguments:
+        if type(a_list) == list:
+            arg_list.extend(a_list)
+        else:
+            arg_list.append(a_list)
     arg_list.append(source_directory)
     arg_list.append(target_directory)
     print(' '.join(arg_list))
     if fake == False:
-        os.makedirs(target_directory, exist_ok=True)
         rsync_process = subprocess.run(arg_list)
         return rsync_process
     return None

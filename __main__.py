@@ -1,38 +1,44 @@
 from json import dumps as jdumps
+import os
 
 import argumenter as args
 from verbose_printer import veprint
 from rsync_helper import *
 import syncmap
 
+def pprint(obj):
+    print(jdumps(obj, indent=2, default=str))
 
-mappings_list = []
-for syncmap_file in syncmap.get_file_list(args.initial_directory):
+syncmaps:dict = {}
+for syncmap_file in sorted(syncmap.get_file_list(args.initial_directory), reverse=True):
     print(syncmap_file)
-    mappings_list += syncmap.parse_file(syncmap_file)
+    syncmaps[os.path.dirname(syncmap_file)] = syncmap.parse_file(syncmap_file)
 
-def generate_exclude(input_entry:syncmap.DirectionOperator|syncmap.NegationOperator):
-    _type = type(input_entry)
-    if _type == syncmap.DirectionOperator:
-        return f"--exclude={input_entry.from_path}"
-    elif _type == syncmap.NegationOperator:
-        return f"--exclude={input_entry.negator}"
+pprint(syncmaps)
 
-exclude_list = []
-#TODO?: Change so that it does not appear in *every* command
-universal_exclude_list = []
-for mapping in mappings_list:
-    entry_type = type(mapping["operation"])
-    operation = mapping["operation"]
-    
-    new_exclude = generate_exclude(operation)
-    if entry_type == syncmap.NegationOperator:
-        universal_exclude_list.append(new_exclude)
-    exclude_list.append(new_exclude)
-
-for mapping in mappings_list:
-    if mapping["opt_args"] == None:
-        continue
-    rsync_args:list = args.default_flags + mapping["opt_args"] + universal_exclude_list
-    operation = mapping["operation"]
-    rsync(operation.from_path, operation.to_path, rsync_args)
+for map_key in syncmaps:
+    operation_list = syncmaps[map_key]
+    negation_list:list = []
+    for map_item in operation_list:
+        operation:syncmap.GenericOperator = map_item["operation"]
+        if type(operation) == syncmap.NegationOperator:
+            negation_list.append(operation.exclude)
+        elif type(operation) == syncmap.DirectionOperator:
+            source_path:str = map_key
+            additonal_filters = []
+            if operation.is_dir == True:
+                source_path = os.path.join(source_path, operation.from_target)
+                for negation in negation_list:
+                    additonal_filters.append(negation.replace(operation.from_target, ''))
+            elif operation.is_globbed == False:
+                source_path = os.path.join(source_path, operation.from_target)
+            if operation.is_globbed == True:
+                dir_glob_pair:list = operation.from_target.rsplit('/', maxsplit=1)
+                source_path = os.path.join(source_path, dir_glob_pair[0]+'/')
+                additonal_filters.append("-m")
+                additonal_filters.append("-f+ */")
+                additonal_filters.append(f"-f+ {dir_glob_pair[1]}")
+                additonal_filters.append("-f- *")
+            rsync(source_path, operation.to_path, [ args.default_flags,
+                                                    map_item["opt_args"],
+                                                    additonal_filters ], args.dry_run)
