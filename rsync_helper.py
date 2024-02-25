@@ -12,9 +12,6 @@ def rsync_executable_path():
 def rsync(source_directory:str, target_directory:str, arguments:[list],
           fake:bool=False) -> subprocess.CompletedProcess[bytes]|None:
     arg_list = ["rsync"]
-    arg_list.append("--mkpath")
-    #TODO: Be able to specify custom map file name and disable excluding it
-    arg_list.append("--exclude=.syncmap")
     for a_list in arguments:
         if type(a_list) == list:
             arg_list.extend(a_list)
