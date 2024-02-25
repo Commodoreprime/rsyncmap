@@ -10,6 +10,8 @@ source_directory = pl.Path(argv[argvlen - 2])
 target_directory = pl.Path(argv[argvlen - 1])
 additional_args = argv[1:argvlen - 2]
 
+dry_run:bool = (argv.count("--dry-run") + argv.count("-n")) > 0
+
 print(f"source: {source_directory} dest: {target_directory} additional args: {additional_args}")
 
 root_syncmap = source_directory.joinpath(".syncmap")
@@ -53,6 +55,6 @@ for i in syncmap_abstract.keys():
     if len(entry["filter_rules"]) > 0:
         for filter in entry["filter_rules"]:
             filter_args.append(f"--filter={filter}")
-    rsync(str(source_directory.joinpath(entry["from"])), str(target_directory.joinpath(entry["to"])), [additional_args, filter_args], True)
+    rsync(str(source_directory.joinpath(entry["from"])), str(target_directory.joinpath(entry["to"])), [additional_args, filter_args], dry_run)
 
 exit(0)
