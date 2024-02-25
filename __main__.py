@@ -27,6 +27,7 @@ with open(root_syncmap) as f:
     last_idx = None
     for i, line in enumerate(f.readlines()):
         argus = extract_arguments(line)
+        if len(line.strip()) == 0: continue
         if argus[1] == "=>":
             syncmap_abstract.update({
                 i: {
