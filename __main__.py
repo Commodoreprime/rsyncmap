@@ -1,0 +1,58 @@
+import pathlib as pl
+from sys import argv
+from pprint import pprint
+
+from rsync_helper import *
+from utils import *
+
+argvlen = len(argv)
+source_directory = pl.Path(argv[argvlen - 2])
+target_directory = pl.Path(argv[argvlen - 1])
+additional_args = argv[1:argvlen - 2]
+
+print(f"source: {source_directory} dest: {target_directory} additional args: {additional_args}")
+
+root_syncmap = source_directory.joinpath(".syncmap")
+
+syncmap_abstract = {}
+
+if root_syncmap.exists() == False:
+    print(".syncmap files does not exist!")
+    exit(1)
+
+with open(root_syncmap) as f:
+    last_idx = None
+    for i, line in enumerate(f.readlines()):
+        argus = extract_arguments(line)
+        if argus[1] == "=>":
+            syncmap_abstract.update({
+                i: {
+                    "from": argus[0],
+                    "to": argus[2],
+                    "filter_rules": []
+                }
+            })
+            last_idx = i
+            continue
+        if last_idx == None:
+            syncmap_abstract.update({
+                0: {
+                    "from": source_directory,
+                    "to": target_directory,
+                    "filter_rules": []
+                }
+            })
+            last_idx = 0
+        syncmap_abstract[last_idx]["filter_rules"].append(line.strip())
+
+pprint(syncmap_abstract, indent=2)
+
+for i in syncmap_abstract.keys():
+    entry = syncmap_abstract[i]
+    filter_args = []
+    if len(entry["filter_rules"]) > 0:
+        for filter in entry["filter_rules"]:
+            filter_args.append(f"--filter={filter}")
+    rsync(str(source_directory.joinpath(entry["from"])), str(target_directory.joinpath(entry["to"])), [additional_args, filter_args], True)
+
+exit(0)
