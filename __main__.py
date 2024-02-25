@@ -40,8 +40,8 @@ with open(root_syncmap) as f:
         if last_idx == None:
             syncmap_abstract.update({
                 0: {
-                    "from": source_directory,
-                    "to": target_directory,
+                    "from": "",
+                    "to": "",
                     "filter_rules": []
                 }
             })
