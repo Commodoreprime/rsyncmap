@@ -11,8 +11,9 @@ target_directory = pl.Path(argv[argvlen - 1])
 additional_args = argv[1:argvlen - 2]
 
 dry_run:bool = (argv.count("--dry-run") + argv.count("-n")) > 0
+verbose:bool = (argv.count("--verbose") + argv.count("-v")) > 0
 
-print(f"source: {source_directory} dest: {target_directory} additional args: {additional_args}")
+if verbose: print(f"source: {source_directory} dest: {target_directory} additional args: {additional_args}")
 
 root_syncmap = source_directory.joinpath(".syncmap")
 
@@ -47,7 +48,7 @@ with open(root_syncmap) as f:
             last_idx = 0
         syncmap_abstract[last_idx]["filter_rules"].append(line.strip())
 
-pprint(syncmap_abstract, indent=2)
+if verbose: pprint(syncmap_abstract, indent=2)
 
 for i in syncmap_abstract.keys():
     entry = syncmap_abstract[i]
