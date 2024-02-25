@@ -1,38 +1,58 @@
-from json import dumps as jdumps
+import pathlib as pl
+from sys import argv
+from pprint import pprint
 
-import argumenter as args
-from verbose_printer import veprint
 from rsync_helper import *
-import syncmap
+from utils import *
 
+argvlen = len(argv)
+source_directory = pl.Path(argv[argvlen - 2])
+target_directory = pl.Path(argv[argvlen - 1])
+additional_args = argv[1:argvlen - 2]
 
-mappings_list = []
-for syncmap_file in syncmap.get_file_list(args.initial_directory):
-    print(syncmap_file)
-    mappings_list += syncmap.parse_file(syncmap_file)
+print(f"source: {source_directory} dest: {target_directory} additional args: {additional_args}")
 
-def generate_exclude(input_entry:syncmap.DirectionOperator|syncmap.NegationOperator):
-    _type = type(input_entry)
-    if _type == syncmap.DirectionOperator:
-        return f"--exclude={input_entry.from_path}"
-    elif _type == syncmap.NegationOperator:
-        return f"--exclude={input_entry.negator}"
+root_syncmap = source_directory.joinpath(".syncmap")
 
-exclude_list = []
-#TODO?: Change so that it does not appear in *every* command
-universal_exclude_list = []
-for mapping in mappings_list:
-    entry_type = type(mapping["operation"])
-    operation = mapping["operation"]
-    
-    new_exclude = generate_exclude(operation)
-    if entry_type == syncmap.NegationOperator:
-        universal_exclude_list.append(new_exclude)
-    exclude_list.append(new_exclude)
+syncmap_abstract = {}
 
-for mapping in mappings_list:
-    if mapping["opt_args"] == None:
-        continue
-    rsync_args:list = args.default_flags + mapping["opt_args"] + universal_exclude_list
-    operation = mapping["operation"]
-    rsync(operation.from_path, operation.to_path, rsync_args)
+if root_syncmap.exists() == False:
+    print(".syncmap files does not exist!")
+    exit(1)
+
+with open(root_syncmap) as f:
+    last_idx = None
+    for i, line in enumerate(f.readlines()):
+        argus = extract_arguments(line)
+        if argus[1] == "=>":
+            syncmap_abstract.update({
+                i: {
+                    "from": argus[0],
+                    "to": argus[2],
+                    "filter_rules": []
+                }
+            })
+            last_idx = i
+            continue
+        if last_idx == None:
+            syncmap_abstract.update({
+                0: {
+                    "from": source_directory,
+                    "to": target_directory,
+                    "filter_rules": []
+                }
+            })
+            last_idx = 0
+        syncmap_abstract[last_idx]["filter_rules"].append(line.strip())
+
+pprint(syncmap_abstract, indent=2)
+
+for i in syncmap_abstract.keys():
+    entry = syncmap_abstract[i]
+    filter_args = []
+    if len(entry["filter_rules"]) > 0:
+        for filter in entry["filter_rules"]:
+            filter_args.append(f"--filter={filter}")
+    rsync(str(source_directory.joinpath(entry["from"])), str(target_directory.joinpath(entry["to"])), [additional_args, filter_args], True)
+
+exit(0)
