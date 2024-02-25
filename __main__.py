@@ -10,6 +10,10 @@ source_directory = argv[argvlen - 2]
 target_directory = argv[argvlen - 1]
 additional_args = argv[1:argvlen - 2]
 
+if os.path.isdir(source_directory) == False or os.path.isdir(target_directory) == False:
+    print("Need at least a valid source and destination directory!")
+    exit(1)
+
 dry_run:bool = (argv.count("--dry-run") + argv.count("-n")) > 0
 verbose:bool = (argv.count("--verbose") + argv.count("-v")) > 0
 
