@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from sys import argv
 from pprint import pprint
 import os
